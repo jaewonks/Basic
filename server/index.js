@@ -23,9 +23,9 @@ mongoose.connect(config.mongoURI,
       .catch(err => console.log(err))
 
 //화면에 뿌린다
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+app.get('/', (req, res) => res.send('Hello World!'))
+
+app.get('/api/hello', (req, res) => res.send('Hello Hello'))
 
 app.post('/api/users/register', (req, res) => {
   //회원가입할때 필요한 정보들을 client에서 가져오면 
@@ -45,7 +45,7 @@ app.post('/api/users/login', (req, res) => {
     User.findOne({ email: req.body.email }, (err, user) => {
             if(!user){
             return res.json({
-                loginSucess: false,
+                loginSuccess: false,
                 message: "제공된 이메일에 해당하는 유저가 없습니다."
             })
         }
@@ -60,7 +60,7 @@ app.post('/api/users/login', (req, res) => {
                 //토큰을 저장 -> 쿠키/로컬스토리지..(여러군데 저장 가능)
                 res.cookie("x_auth", user.token) 
                 .status(200)
-                .json({ loginSucess: true, userId: user._id })
+                .json({ loginSuccess: true, userId: user._id })
             })
         })
     })
@@ -72,6 +72,7 @@ app.get('/api/users/auth', auth, (req, res) => {
         _id: req.user._id,
         //관리자여부 role 1 어드민, 2 특정부서어드민, 0 일반유저
         isAdmin: req.user.role === 0 ? false : true, 
+        isAuth: true,
         email: req.user.email,
         name: req.user.name,
         lastname: req.user.lastname,
@@ -82,14 +83,14 @@ app.get('/api/users/auth', auth, (req, res) => {
 
 app.get('/api/users/logout', auth, (req, res) => {
     User.findOneAndUpdate({ _id: req.user._id },
-        { token: "" }
-        , (err, user) => {
-          if (err) return res.json({ success: false, err });
-          return res.status(200).send({
-            success: true
-          })
+      { token: "" }
+      , (err, user) => {
+        if (err) return res.json({ success: false, err });
+        return res.status(200).send({
+          success: true
         })
-    })
+      })
+  })
 
 //포트에 실행하게한다
 app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))
